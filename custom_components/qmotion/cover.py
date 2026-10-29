@@ -24,7 +24,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
 
 
 class QMotionCover(CoordinatorEntity[QMotionCoordinator], CoverEntity, RestoreEntity):
-    """A QMotion blind with estimated position tracking."""
+    """A QMotion blind group with estimated position tracking."""
 
     _attr_has_entity_name = True
     _attr_supported_features = CoverEntityFeature.OPEN | CoverEntityFeature.CLOSE | CoverEntityFeature.SET_POSITION | CoverEntityFeature.STOP
@@ -33,18 +33,29 @@ class QMotionCover(CoordinatorEntity[QMotionCoordinator], CoverEntity, RestoreEn
     def __init__(self, coordinator: QMotionCoordinator, entry: ConfigEntry, blind: Blind) -> None:
         super().__init__(coordinator)
         self._blind = blind
-        self._attr_name = blind.name
+        # The device name is the QMotion group name; avoid duplicating it as the entity name.
+        self._attr_name = None
         self._attr_unique_id = f"{entry.entry_id}_{blind.address}"
         self._attr_is_closed = False
         self._attr_current_cover_position = None
-        self._attr_extra_state_attributes = {"qmotion_address": blind.address}
+        self._attr_extra_state_attributes = {
+            "qmotion_address": blind.address,
+            "qmotion_group_name": blind.name,
+        }
         self._motion_started = None
         self._motion_from = 0.0
         self._motion_to = 0.0
 
     @property
     def device_info(self):
-        return {"identifiers": {(DOMAIN, self.coordinator.client.host)}, "name": f"QMotion ({self.coordinator.client.host})", "manufacturer": "QMotion", "model": "QSync", "configuration_url": f"http://{self.coordinator.client.host}"}
+        """Expose each named QMotion group as an independently assignable HA device."""
+        return {
+            "identifiers": {(DOMAIN, self.coordinator.client.host, self._blind.address)},
+            "name": self._blind.name,
+            "manufacturer": "QMotion",
+            "model": "QMotion Blind Group",
+            "configuration_url": f"http://{self.coordinator.client.host}",
+        }
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
