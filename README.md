@@ -1,21 +1,23 @@
 # QMotion Blinds for Home Assistant
 
-A native Home Assistant integration for controlling QMotion blinds through a local QSync hub. It follows the observed protocol described by [devbobo/qmotion](https://github.com/devbobo/qmotion), whose repository is MIT licensed.
+A native Home Assistant integration for QMotion blinds through a local QSync hub. The QSync command and record layout follows observations documented in [devbobo/qmotion](https://github.com/devbobo/qmotion), which is MIT licensed.
 
 ## Features
 
-- Adds each blind as a Home Assistant cover entity with open, close, and set position controls.
-- Supports QSync's nine positions: 0%, 12.5%, 25%, 37.5%, 50%, 62.5%, 75%, 87.5%, and 100%. Requests are rounded to the nearest supported step.
-- Connects directly over the local network; no cloud service or credentials are used.
+- Each blind appears as a Home Assistant cover with open, close, and set position controls.
+- Supports QSync's nine positions: 0%, 12.5%, 25%, 37.5%, 50%, 62.5%, 75%, 87.5%, and 100%. Requested positions are rounded to the nearest supported step.
+- Communicates locally over TCP port 9760 without cloud access or credentials.
 
-**Position is estimated.** QSync does not report live position in the observed protocol. Home Assistant restores the last known position and estimates movement over 30 seconds. Manual control, power loss, automations, or a different travel time can make the displayed position inaccurate. Stop reissues the estimated current position as a new target because the observed protocol has no dedicated stop command.
+**Position reporting is estimated.** The observed protocol does not provide live position feedback. Home Assistant restores the last known position and estimates travel over 30 seconds, so manual use, power loss, or a different blind travel time can make the displayed position inaccurate. QSync's observed protocol has no dedicated stop command; Stop reissues the current estimated position as a new target.
 
-## Installation
+## Install with HACS
 
-1. Copy `custom_components/qmotion` into `<config>/custom_components/qmotion`.
-2. Restart Home Assistant.
-3. Go to **Settings → Devices & services → Add integration**, search for **QMotion Blinds**, and enter your QSync hub IP address. TCP port defaults to `9760`.
+1. In HACS, open **Integrations** and choose the three-dot menu, then **Custom repositories**.
+2. Add https://github.com/magray/ha-qmotion with category **Integration**.
+3. Find **QMotion Blinds**, install it, restart Home Assistant, then add the integration from **Settings → Devices & services**. Enter your QSync hub IP address; TCP port defaults to 9760.
 
-The integration polls blind inventory every 60 seconds and requires TCP access to the hub on port 9760. It asks for the hub IP directly; the upstream client's UDP broadcast discovery on port 9720 is not required.
+## Manual installation
 
-This independent integration is not affiliated with QMotion.
+Copy custom_components/qmotion into your Home Assistant config/custom_components/qmotion folder, restart Home Assistant, and add **QMotion Blinds** from **Settings → Devices & services**.
+
+The integration polls the hub's blind inventory every 60 seconds. It asks for the hub IP directly; UDP broadcast discovery on port 9720 is not required. This project is independent and is not affiliated with QMotion.
